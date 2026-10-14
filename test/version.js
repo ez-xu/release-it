@@ -112,6 +112,23 @@ describe('version', () => {
     assert.deepEqual(v.log.warn.mock.calls[0].arguments, ['Coerced invalid semver version "1.2" into "1.2.0".']);
   });
 
+  test('should use a declared non-semver version verbatim instead of coercing it', async () => {
+    const v = await factory(Version, { options: { ci: true } });
+    const declared = '3.3.0.7_feature_modbus-regs_G5_20261012_0de3e49f';
+    assert.equal(v.incrementVersion({ increment: declared }), declared);
+    assert.equal(v.incrementVersion({ latestVersion: '0.0.0', increment: declared }), declared);
+    // still coerces when the semver is not merely a prefix (no information is dropped)
+    assert.equal(v.incrementVersion({ increment: 'v1.2.0.0' }), '1.2.0');
+    assert.equal(v.incrementVersion({ increment: '1.2' }), '1.2.0');
+  });
+
+  test('should not crash on a non-semver latest version', async () => {
+    const v = await factory(Version, { options: { ci: true } });
+    const latestVersion = '3.3.0.7_feature_modbus-regs_G5_20261012_0de3e49f';
+    assert.equal(v.incrementVersion({ latestVersion, increment: 'patch' }), null);
+    assert.equal(v.incrementVersion({ latestVersion, increment: false }), latestVersion);
+  });
+
   test('should default to a prerelease patch in CI mode', async () => {
     const v = await factory(Version);
     assert.equal(

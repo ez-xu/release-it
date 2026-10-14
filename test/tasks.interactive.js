@@ -88,6 +88,26 @@ describe('tasks.interactive', () => {
     assert.match(log.log.mock.calls.at(-1).arguments[0], /Done \(in [0-9]+s\.\)/);
   });
 
+  test('should release a declared non-semver version verbatim', async () => {
+    const declared = '3.3.0.7_feature_modbus-regs_G5_20261012_0de3e49f';
+    const container = getContainer(
+      {
+        increment: declared,
+        git: { push: false },
+        npm: { publish: false }
+      },
+      mock.fn((type, options) => {
+        if (type === 'list') return options.choices[0].value;
+        if (type === 'input') return declared;
+        return true;
+      })
+    );
+
+    const { version } = await runTasks({}, container);
+
+    assert.equal(version, declared);
+  });
+
   test('should run tasks using extended configuration', async t => {
     renameSync('.git', 'foo');
 
