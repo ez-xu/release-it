@@ -154,6 +154,17 @@ test('parseVersion preserves inputs that cannot be coerced', () => {
   assert.deepEqual(parseVersion('invalid'), { version: 'invalid', isPreRelease: false, preReleaseId: null });
 });
 
+test('parseVersion shortens a non-semver version to its semver prefix', () => {
+  // Documents why `parseVersion` must not receive a declared version: a version that only
+  // starts with a semver is shortened to it. `Version.incrementVersion` keeps such a version
+  // verbatim before it can reach this function.
+  assert.deepEqual(parseVersion('3.3.0.7_feature_modbus-regs_G5_20261012_0de3e49f'), {
+    version: '3.3.0',
+    isPreRelease: false,
+    preReleaseId: null
+  });
+});
+
 const sample = {
   root: {
     level1: {
